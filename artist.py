@@ -5,7 +5,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
 import sys
-sys.path.insert(1,'C:/Users/servet/Desktop/twitter-spotify/Google-Image-Scraper-master')
+sys.path.insert(1,'C:/Users/servet/Desktop/twitter-spotifypl/Google-Image-Scraper-master/')
+
 import main as mk
 
 from GoogleImageScrapper import GoogleImageScraper
@@ -21,7 +22,8 @@ def get_most_artists(USER_ID_INPUT):
 
     # COUNT MOSTLY ACCURING ARTIST
     arts = []
-
+    if(playlists['items']==None):
+        return ""
     for i, pla in enumerate(playlists['items']):
         pl_id = pla['id']
         artist_names = sp.playlist_items(playlist_id=pl_id, fields='items.track.artists.name', additional_types=['track'])['items']

@@ -31,21 +31,29 @@ def check_mentions(api, keywords, since_id):
     for mention in api.mentions_timeline(since_id=since_id):
         new_since_id = max(mention.id, new_since_id)
 
-        if any(keyword in mention.text.lower() for keyword in keywords):
+        get_ment_expanded = api.get_status(mention.id, tweet_mode='extended', include_ext_alt_text=True)._json['entities']['urls']
+
+        if any(keyword in mention.text.lower() for keyword in keywords) or (len(get_ment_expanded)==1 and keywords[1] in get_ment_expanded[0]['expanded_url']):
             flag = check_id_replied(mention.id)
-            print(mention.text, " - ", mention.id)
             if flag:                                #mention already replied
                 continue
-            user_id = mention.text.split()[-1][13:]
+            if len(get_ment_expanded) == 0:
+                user_id = mention.text.split()[-1][13:]
+            else:
+                user_id = get_ment_expanded[0]['expanded_url'][30:]
+                user_id = user_id.split("?")[0]
+
+            print(mention.text, " - ", mention.id)
+            print(user_id)
             logger.info(f"FOUND USER_ID: {user_id}")
             logger.info(f"Answering to {mention.user.name}")
             status = art.get_most_artists(user_id)
-            #if len(len(status)< 70):
-            #    logger.info(f"COULDNT FIND RESULT/PLAYLIST")
+            if len(status)< 70:
+                logger.info(f"COULDNT FIND RESULT/PLAYLIST")
             img = os.path.normpath(os.getcwd() + "\\photos/result.jpg")
             api.update_with_media(img,status=status, in_reply_to_status_id=mention.id, auto_populate_reply_metadata=True) #reply
-            shutil.rmtree("C:/Users/servet/Desktop/twitter-spotify/photos")
-            time.sleep(100)
+            shutil.rmtree("C:/Users/servet/Desktop/twitter-spotifypl/photos")
+            time.sleep(15)
     return new_since_id
 
 
@@ -53,7 +61,7 @@ def main():
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
     since_id = 1
     while True:
-        since_id = check_mentions(api, ["spotify:user:"], since_id)
+        since_id = check_mentions(api, ["spotify:user:","https://open.spotify.com/user"], since_id)
         logger.info("waitin")
         time.sleep(10)
 
